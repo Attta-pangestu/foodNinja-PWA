@@ -5,5 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const form = document.querySelector('#side-form') ; 
     M.Sidenav.init(form, {edge : 'left'}) ; 
+
+    
+    
 });
 

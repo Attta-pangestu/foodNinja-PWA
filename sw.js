@@ -37,6 +37,7 @@ self.addEventListener('install', evt => {
 });
 
 self.addEventListener('activate', evt => {
+    console.log('activate service worker') ; 
     evt.waitUntil(
         caches.keys().then( keys => {
             return Promise.all(keys
@@ -48,20 +49,22 @@ self.addEventListener('activate', evt => {
 })
 
 self.addEventListener('fetch', evt => {
-    console.log('Fetch Event ', evt) ; 
-    evt.respondWith(
-        caches.match(evt.request)
-        .then(cacheRes => {
-            return cacheRes || fetch(evt.request)
-            .then(fetchRes => {
-                return caches.open(DYNAMIC_CHACHE_NAME)
-                .then(cache => {
-                    cache.put(evt.request.url, fetchRes.clone())
-                    return fetchRes; 
-                }) ;
+    // evt.respondWith(
+    //     caches.match(evt.request)
+    //     .then(cacheRes => {
+    //         return cacheRes || fetch(evt.request)    
+    //         .then(fetchRes => {
+    //             return caches.open(DYNAMIC_CHACHE_NAME)
+    //             .then(cache => {
+    //                 cache.put(evt.request.url, fetchRes.clone())
+    //                 // limit dynamic cache size
+    //                 limitCacheSize(DYNAMIC_CHACHE_NAME, 15) ; 
+    //                 return fetchRes; 
+    //             }) 
+    //             .catch(() => caches.match('/pages/fallback.html')); 
                 
-            }) 
-            .catch(() => caches.match('/pages/fallback.html')); 
-        })
-    )
+    //         });
+    //     }) 
+    //     .catch( () => caches.match('/pages/fallback.html') )
+    // ); 
 });
