@@ -1,6 +1,6 @@
 const recipeField = document.querySelector('.recipes') ;
 
-export const renderDataRecipe = (recipeArray) => {
+const renderDataRecipe = (recipeArray) => {
     recipeField.innerHTML = `` ; 
     recipeArray.forEach(recipe => {
         recipeField.innerHTML += renderCardHTML(recipe) ; 
@@ -22,11 +22,9 @@ const renderCardHTML = ({judul, bahan, id}) => {
     ` ;
 } ;
 
-export const deleteEvent = () =>{
-    const recipeContainer = document.querySelector('.recipes') ;
-    recipeContainer.addEventListener('click', event => {
-        if(event.target.nodeName === 'I') {
-            console.log('Anda sedang mengahapus data ID : ', event.target.getAttribute('data-id'))
-        } 
-    })
-}
+
+
+const removeRecipeUI = (id) => {
+    const recipeById = document.querySelector(`.recipe[data-target="${id}"]`);
+    recipeById.remove() ; 
+};

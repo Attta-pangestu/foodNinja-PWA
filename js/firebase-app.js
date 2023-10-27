@@ -14,5 +14,5 @@ firebase.initializeApp(firebaseConfig);
 
 //initialize DB
 const db = firebase.firestore();
-export const citiesRef = db.collection('cities') ; 
-export const recipeRef = db.collection('indo-food-recipe') ; 
+const citiesRef = db.collection('cities') ; 
+const recipeRef = db.collection('indo-food-recipe') ; 

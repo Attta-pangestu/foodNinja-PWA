@@ -3,14 +3,19 @@ const DYNAMIC_CHACHE_NAME = 'dynamix-site-v3' ;
 
 const assetCache = [
     '/', 
-    'index.html', 
+    './index.html', 
     '/pages/fallback.html',
-    '/css/styles.css',
-    '/css/materialize.min.css',
-    '/js/app.js', 
-    '/js/materialize.min.js', 
-    '/js/script.js',
-    '/img/dish.png',
+    './css/styles.css',
+    './css/materialize.min.css',
+    './js/app.js', 
+    './js/materialize.min.js', 
+    './js/script.js',
+    './img/dish.png',
+    './js/firebase-app.js',
+    './js/db.js',
+    './js/ui.js',
+    'https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js', 
+    'https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js',
     'https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2',
 ]
 
@@ -31,10 +36,13 @@ self.addEventListener('install', evt => {
     console.log('Menginstall Service Worker');
     evt.waitUntil(
         caches.open(STATIC_CHACHE_NAME).then(cache => {
-            cache.addAll(assetCache) ; 
-        } )
+            return cache.addAll(assetCache).catch(err => {
+                console.error('Gagal menambahkan ke cache:', err);
+            });
+        })
     );
 });
+
 
 self.addEventListener('activate', evt => {
     console.log('activate service worker') ; 
@@ -49,22 +57,25 @@ self.addEventListener('activate', evt => {
 })
 
 self.addEventListener('fetch', evt => {
-    // evt.respondWith(
-    //     caches.match(evt.request)
-    //     .then(cacheRes => {
-    //         return cacheRes || fetch(evt.request)    
-    //         .then(fetchRes => {
-    //             return caches.open(DYNAMIC_CHACHE_NAME)
-    //             .then(cache => {
-    //                 cache.put(evt.request.url, fetchRes.clone())
-    //                 // limit dynamic cache size
-    //                 limitCacheSize(DYNAMIC_CHACHE_NAME, 15) ; 
-    //                 return fetchRes; 
-    //             }) 
-    //             .catch(() => caches.match('/pages/fallback.html')); 
-                
-    //         });
-    //     }) 
-    //     .catch( () => caches.match('/pages/fallback.html') )
-    // ); 
+    if (evt.request.url.indexOf('firestore.googleapis.com') === -1 && evt.request.url.startsWith('http')) {
+        evt.respondWith(
+            caches.match(evt.request).then(cacheRes => {
+                if (cacheRes) {
+                    return cacheRes;
+                }
+                return fetch(evt.request)
+                    .then(fetchRes => {
+                        return caches.open(DYNAMIC_CHACHE_NAME)
+                            .then(cache => {
+                                cache.put(evt.request.url, fetchRes.clone());
+                                limitCacheSize(DYNAMIC_CHACHE_NAME, 15);
+                                return fetchRes;
+                            });
+                    }).catch(err => {
+                        console.log('error melakukan fetch', err);
+                        return caches.match('/pages/fallback.html');  // Mengembalikan halaman fallback saat fetch gagal
+                    });
+            })
+        );
+    }
 });
