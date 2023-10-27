@@ -13,6 +13,6 @@ console.log("Menginisiasi Firebase App");
 firebase.initializeApp(firebaseConfig);
 
 //initialize DB
-const db = firebase.firestore();
+export const db = firebase.firestore();
 export const citiesRef = db.collection('cities') ; 
 export const recipeRef = db.collection('indo-food-recipe') ; 

@@ -1,15 +1,27 @@
-import { citiesRef, recipeRef } from "./firebase-app.js";
-import { renderDataRecipe, deleteEvent } from "./ui.js";
+import { db ,citiesRef, recipeRef } from "./firebase-app.js";
+import { removeRecipeUI, renderDataRecipe } from "./ui.js";
 let DATA_RECIPE = [] ; 
 
 const dbInit =  () =>  {
+  _enablePersistance() ; 
   _initialData() ;
   _updateDataEvent() ; 
 } ;
 
 const _initialData =  () =>  {
   _recipeDataRealtimeUpdate() ; 
-  // DATA_RECIPE = await _recipeDataOnce() ;  
+  // DATA_RECIPE = await _recipeDataOnce() ;
+  // _enablePersistance() ;   
+};
+
+const _enablePersistance = () => {
+  db.enablePersistence().catch(err => {
+    if (err.code == 'failed-precondition') {
+      console.log('Multiple tabs open, persistence can only be enable') ;
+  } else if (err.code == 'unimplemented') {
+      console.log('The current browser does not support all of the features required to enable persistence'); 
+  }
+  });
 };
 
 const _initialUI = () => {
@@ -18,8 +30,11 @@ const _initialUI = () => {
 };
 
 const _updateDataEvent = () => {
-  deleteEvent() ; 
+  addDataEvent() ; 
+  deleteEventId() ; 
 };
+
+
 
 const _citiesData = () => {
   //get doc data from cities  collection 
@@ -50,7 +65,7 @@ const _recipeDataReadOnce = async () => {
 const _recipeDataRealtimeUpdate =  () => {
   // listen for change in database and update to DOM
   let data = [] ; 
-  recipeRef.onSnapshot(querySnapshot => {
+  recipeRef.onSnapshot( {includeMetadataChanges:true}, (querySnapshot) => {
     querySnapshot.docChanges().forEach( change => {
       if(change.type === 'added') {
         let docData = change.doc.data();
@@ -65,10 +80,10 @@ const _recipeDataRealtimeUpdate =  () => {
         console.log('Terjadi modifikasi data', change.doc.data()); 
       }
       if(change.type === 'removed') {
-        console.log('Terjadi penghapusan data', change.doc.data()); 
-        
+        console.log('Terjadi penghapusan data id', change.doc.data()); 
       }
     });
+
   
     /* 
     ================================
@@ -89,6 +104,36 @@ const _recipeDataRealtimeUpdate =  () => {
   });
 };
 
+const addDataEvent = () => {
+  const formContainer = document.querySelector('.add-recipe');
+  formContainer.addEventListener('submit', (event) => {
+    event.preventDefault();
+    event.stopPropagation(); 
+    const recipeObject = {
+      judul : formContainer.title.value,
+      bahan : formContainer.ingredients.value,
+    };
+    // console.log('Menambahkan data : ', recipeObject) ; 
+    recipeRef.doc().set(recipeObject).then( () => {
+      console.log('Berhasil menambahkan data')
+    }) ; 
+  });
+};
+
+const deleteEventId = () =>{
+  const recipeContainer = document.querySelector('.recipes') ;
+  recipeContainer.addEventListener('click', event => {
+      if(event.target.nodeName === 'I') {
+          const recipeId = event.target.getAttribute('data-id') ; 
+          recipeRef.doc(recipeId).delete()
+          .then( () => {
+            console.log("berhasil menghapus data");
+            removeRecipeUI(recipeId); 
+          }) ; 
+      } 
+  })
+  
+};
 
 
 
